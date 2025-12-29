@@ -13,6 +13,7 @@ const app = express();
 // Middleware to parse JSON
 app.use(express.json());
 app.use(cors({
+    origin: ['http://localhost:5173','https://uniexchange.internalbuildtools.online'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true

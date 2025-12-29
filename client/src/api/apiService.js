@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Create an axios instance with the base URL and other configurations
 const apiClient = axios.create({
-    baseURL: 'https://uniexchange-api.internalbuildtools.online', // Your backend URL
+    baseURL: import.meta.env.VITE_API_BASE_URL, // Your backend URL
     headers: {
         'Content-Type': 'application/json',
     },
