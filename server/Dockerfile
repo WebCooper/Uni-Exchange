@@ -1,47 +1,45 @@
 # Multi-stage build for Express.js server
-# Stage 1: Build stage
-FROM node:20-alpine AS builder
+# Stage 1: Base stage
+FROM node:20-alpine AS base
 
-# Set working directory
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
-# Install dependencies
-RUN npm ci --only=production
+# Stage 2: Production stage
+FROM base AS production
+WORKDIR /app
 
-# Stage 2: Runtime stage
-FROM node:20-alpine
-
-# Set environment to production
 ENV NODE_ENV=production
 
-# Set working directory
-WORKDIR /app
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nodejs
 
-# Copy node_modules from builder stage
-COPY --from=builder /app/node_modules ./node_modules
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
 
 # Copy application files
-COPY . .
+COPY --chown=nodejs:nodejs . .
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-
-# Change ownership of app directory
-RUN chown -R nodejs:nodejs /app
-
-# Switch to non-root user
 USER nodejs
 
-# Expose port
-EXPOSE 5001
+EXPOSE 4001
 
-# Health check
+ENV PORT=4001
+ENV HOSTNAME="0.0.0.0"
+
+# Health check - will use PORT env var
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:5001', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+    CMD node -e "require('http').get('http://localhost:${PORT:-4001}/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
-# Start the application
 CMD ["node", "index.js"]
