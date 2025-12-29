@@ -1,5 +1,5 @@
 import express from "express"
-import { PORT, mongoDB } from "./config.js"
+import { PORT, mongoDB, CORS_ORIGINS } from "./config.js"
 import mongoose from "mongoose"
 import userRoute from './routes/userRoute.js'
 import questionRoute from './routes/questionRoute.js'
@@ -13,7 +13,7 @@ const app = express();
 // Middleware to parse JSON
 app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://uniexchange.internalbuildtools.online', 'https://uniexchange-api.internalbuildtools.online'],
+    origin: CORS_ORIGINS,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -29,6 +29,10 @@ app.use('/api/search', searchRoute);
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
+});
+
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 //mongodb

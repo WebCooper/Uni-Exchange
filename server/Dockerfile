@@ -33,13 +33,13 @@ COPY --chown=nodejs:nodejs . .
 
 USER nodejs
 
-EXPOSE 4001
+EXPOSE 4003
 
-ENV PORT=4001
+ENV PORT=4003
 ENV HOSTNAME="0.0.0.0"
 
 # Health check - will use PORT env var
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:${PORT:-4001}/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+    CMD node -e "require('http').get('http://localhost:4003/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
 CMD ["node", "index.js"]
