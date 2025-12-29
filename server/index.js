@@ -13,7 +13,7 @@ const app = express();
 // Middleware to parse JSON
 app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost:5173','https://uniexchange.internalbuildtools.online'],
+    origin: ['http://localhost:5173', 'https://uniexchange.internalbuildtools.online', 'https://uniexchange-api.internalbuildtools.online'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -36,7 +36,7 @@ const connectDB = async () => {
     try {
         await mongoose.connect(mongoDB)
         console.log('MongoDB connected successfully');
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server is running on port ${PORT}`);
         });
 
